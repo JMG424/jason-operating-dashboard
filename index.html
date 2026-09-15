@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Jason Operating Dashboard — 5%</title>
+<style>
+:root{--bg:#0f1419;--card:#1a222c;--line:#2a3542;--text:#e8eef4;--muted:#8b9aab;--main:#3d9cfd;--support:#5ecf8a;--cut:#f0a050;--danger:#e86a6a;--conv:#9b8cff;--build:#3d9cfd;--rev:#5ecf8a;--pause:#f0a050}
+*{box-sizing:border-box}body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.45}
+header{padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(15,20,25,.95);backdrop-filter:blur(8px);z-index:20}
+.top{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-start}
+h1{margin:0;font-size:1.15rem;font-weight:650}.sub{color:var(--muted);font-size:.85rem;margin-top:4px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+button{background:transparent;border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer;font:inherit;font-size:.85rem}
+button.primary{background:var(--main);border-color:var(--main);color:#061018;font-weight:650}
+button.danger{border-color:var(--danger);color:var(--danger)}
+nav.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+nav.tabs button.active{background:var(--main);border-color:var(--main);color:#061018;font-weight:650}
+main{padding:18px 20px 56px;max-width:1100px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+.grid{display:grid;gap:14px}
+@media(min-width:860px){.grid.cols-3{grid-template-columns:1.15fr 1fr 1fr}.grid.cols-2{grid-template-columns:1fr 1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.card.done{outline:1px solid rgba(94,207,138,.45)}
+.tag{display:inline-block;font-size:.68rem;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;font-weight:700}
+.tag.main{background:rgba(61,156,253,.2);color:var(--main)}.tag.support{background:rgba(94,207,138,.15);color:var(--support)}.tag.cut{background:rgba(240,160,80,.15);color:var(--cut)}
+.tag.conversation{background:rgba(155,140,255,.18);color:var(--conv)}.tag.build{background:rgba(61,156,253,.18);color:var(--build)}.tag.revenue{background:rgba(94,207,138,.18);color:var(--rev)}.tag.paused{background:rgba(240,160,80,.18);color:var(--pause)}
+h2{margin:8px 0 6px;font-size:1.05rem}h3{margin:0 0 8px;font-size:.92rem;color:var(--muted);font-weight:600}
+[contenteditable="true"]{outline:none;border-radius:8px;padding:2px 4px;min-height:1.2em}
+[contenteditable="true"]:hover{background:rgba(255,255,255,.03)}
+[contenteditable="true"]:focus{background:rgba(61,156,253,.1);box-shadow:0 0 0 1px rgba(61,156,253,.35)}
+.field{margin-top:8px}.label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+ul.cuts{margin:8px 0 0;padding-left:0;list-style:none}ul.cuts li{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+input[type="checkbox"]{width:18px;height:18px;accent-color:var(--support);cursor:pointer}
+input[type="date"],input[type="text"],select,textarea{background:#121820;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;width:100%}
+textarea{min-height:72px;resize:vertical}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
+.toast{position:fixed;right:16px;bottom:16px;background:#122033;border:1px solid var(--main);color:var(--text);padding:10px 14px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;font-size:.85rem}
+.toast.show{opacity:1}.muted{color:var(--muted);font-size:.85rem}
+a{color:var(--main)}footer{color:var(--muted);font-size:.78rem;padding:0 20px 24px;max-width:1100px;margin:0 auto}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.filters button.active{background:#243041}
+.search{max-width:280px}
+.note-card h2{font-size:1rem}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div>
+      <h1>Jason Operating Dashboard — 5%</h1>
+      <div class="sub">Standalone · editable · Notes + Incubator · saves in this browser</div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="btnSave">Save</button>
+      <button id="btnExport">Export JSON</button>
+      <button id="btnImport">Import JSON</button>
+      <button class="danger" id="btnReset">Reset defaults</button>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="active" data-tab="week">This week</button>
+    <button data-tab="lanes">Lanes</button>
+    <button data-tab="incubator">Incubator</button>
+    <button data-tab="notes">Notes</button>
+    <button data-tab="leverage">Leverage</button>
+    <button data-tab="log">Friday log</button>
+  </nav>
+</header>
+<main>
+  <section id="week" class="panel active">
+    <div class="row" style="margin-top:0">
+      <label class="muted">Week of <input type="date" id="weekOf" style="width:auto;display:inline-block;margin-left:6px"/></label>
+      <label class="muted">Status
+        <select id="weekStatus" style="width:auto;display:inline-block;margin-left:6px">
+          <option value="proposed">proposed</option>
+          <option value="locked">locked</option>
+          <option value="scored">Friday scored</option>
+        </select>
+      </label>
+    </div>
+    <div class="grid cols-3" id="betsGrid"></div>
+    <article class="card" style="margin-top:14px">
+      <span class="tag cut">Cut this week</span>
+      <ul class="cuts" id="cutsList"></ul>
+      <div class="row"><button id="addCut">+ Add cut</button></div>
+    </article>
+  </section>
+
+  <section id="lanes" class="panel">
+    <div class="row" style="margin-top:0"><button id="addLaneGoal">+ Add season goal</button></div>
+    <div class="grid cols-2" id="lanesGrid"></div>
+  </section>
+
+  <section id="incubator" class="panel">
+    <p class="muted"><b>Revenue projects</b> (Founders Academy, StaffOS, Deal Machine–adjacent offers, client pilots) vs <b>Internal tools</b> (OpenClaw/Hermes, trackers, dashboards, Codex experiments). Seeded from GitHub (JMG424) + vault Active Projects + Codex folder titles. ChatGPT/Codex chat history isn’t auto-API’d yet — paste insights into Notes or project notes. Stage = conversation / build / revenue / paused.</p>
+    <div class="filters">
+      <input class="search" id="incSearch" type="text" placeholder="Filter projects…"/>
+      <button data-stage-filter="all" class="active">All</button>
+      <button data-stage-filter="conversation">Conversation</button>
+      <button data-stage-filter="build">Build</button>
+      <button data-stage-filter="revenue">Revenue</button>
+      <button data-stage-filter="paused">Paused</button>
+      <button data-bucket-filter="all" class="active">All buckets</button>
+      <button data-bucket-filter="revenue">Revenue projects</button>
+      <button data-bucket-filter="internal">Internal tools</button>
+      <button id="addInc">+ Add project</button>
+    </div>
+    <div class="grid cols-2" id="incGrid"></div>
+  </section>
+
+  <section id="notes" class="panel">
+    <div class="row" style="margin-top:0"><button id="addNote">+ Add note</button></div>
+    <div class="grid cols-2" id="notesGrid"></div>
+  </section>
+
+  <section id="leverage" class="panel">
+    <article class="card">
+      <h2>5% leverage map</h2>
+      <table><thead><tr><th>Lane</th><th>Lever</th><th>This week move</th><th></th></tr></thead><tbody id="leverageBody"></tbody></table>
+      <div class="row"><button id="addLeverage">+ Add row</button></div>
+    </article>
+  </section>
+
+  <section id="log" class="panel">
+    <article class="card">
+      <h2>Friday score</h2>
+      <div class="field"><div class="label">What shipped</div><div contenteditable="true" id="logShipped"></div></div>
+      <div class="field"><div class="label">What didn’t</div><div contenteditable="true" id="logMissed"></div></div>
+      <div class="field"><div class="label">Next Monday seed</div><div contenteditable="true" id="logNext"></div></div>
+      <p class="muted">Google Sheet twin: <a id="sheetLink" href="https://docs.google.com/spreadsheets/d/1xuBGRdBI9j6Qg9A3hV5kU10Zh4NiLXxrDlgz2W90cJs/edit" target="_blank" rel="noopener">open sheet</a></p>
+    </article>
+  </section>
+</main>
+<footer>Offline single file · Auto-saves locally · Export JSON to sync · Incubator is for conversation pieces + possible revenue — still subject to weekly 5% filter</footer>
+<div class="toast" id="toast">Saved</div>
+<input type="file" id="fileImport" accept="application/json,.json" hidden/>
+<script>
+const STORAGE_KEY = "jason-operating-dashboard-v3";
+const SEED_INCUBATOR = [{"name": "Founders Academy", "bucket": "revenue", "stage": "build", "source": "GitHub", "url": "https://github.com/JMG424/founders-academy", "notes": "Commercial academy build", "updated": "2026-07-31"}, {"name": "StaffOS", "bucket": "revenue", "stage": "conversation", "source": "GitHub", "url": "https://github.com/JMG424/staffos", "notes": "Packaged AI ops offer \u2014 tentative brand", "updated": "2026-03-26"}, {"name": "Managed AI Employee pages", "bucket": "revenue", "stage": "conversation", "source": "GitHub", "url": "https://github.com/JMG424/managed-ai-employee-pages", "notes": "Offer packaging / conversation piece", "updated": "2026-05-21"}, {"name": "Scooter safety course", "bucket": "revenue", "stage": "build", "source": "GitHub", "url": "https://github.com/JMG424/scooter-safety-course", "notes": "Course product", "updated": "2026-09-06"}, {"name": "workdifferentai-site", "bucket": "revenue", "stage": "build", "source": "GitHub", "url": "https://github.com/JMG424/workdifferentai-site", "notes": "Public WD AI landing \u2014 parked as weekly MAIN", "updated": "2026-09-06"}, {"name": "Sam Personal Power", "bucket": "revenue", "stage": "conversation", "source": "GitHub", "url": "https://github.com/JMG424/sam-personal-power", "notes": "Client landing / offer page", "updated": "2026-06-26"}, {"name": "Project Matrix", "bucket": "revenue", "stage": "paused", "source": "Vault", "url": "", "notes": "Paid multi-agent expansion proposal \u2014 refresh status", "updated": "2026-05"}, {"name": "Path Peptides", "bucket": "revenue", "stage": "paused", "source": "Vault", "url": "", "notes": "Phase 1 delivered; Phase 2 unresolved", "updated": "2026-05"}, {"name": "Gino Home Services AI Pilot", "bucket": "revenue", "stage": "conversation", "source": "Vault", "url": "", "notes": "Narrow home-services pilot", "updated": "2026-07-16"}, {"name": "Greatness Context Coach", "bucket": "revenue", "stage": "conversation", "source": "Vault", "url": "", "notes": "Product concept", "updated": "2026-07"}, {"name": "Deal Machine (do not clone)", "bucket": "revenue", "stage": "paused", "source": "Manual", "url": "", "notes": "Reference / adjacent commercial lane \u2014 not rebuild; conversation for packaging lessons", "updated": "2026-09-14"}, {"name": "MGC funnel", "bucket": "revenue", "stage": "revenue", "source": "GitHub", "url": "https://github.com/JMG424/mgc-funnel", "notes": "Live Michelle funnel (active business)", "updated": "2026-09-09"}, {"name": "OpenClaw / Hermes Mission Control", "bucket": "internal", "stage": "build", "source": "GitHub", "url": "https://github.com/JMG424/openclaw-hermes-mission-control", "notes": "Internal agent OS / demo proof", "updated": "2026-06-01"}, {"name": "Parthesh OpenClaw walkthrough", "bucket": "internal", "stage": "conversation", "source": "GitHub", "url": "https://github.com/JMG424/parthesh-openclaw-hermes-walkthrough", "notes": "Internal/docs enablement", "updated": "2026-05-27"}, {"name": "UniversalTracker", "bucket": "internal", "stage": "build", "source": "GitHub", "url": "https://github.com/JMG424/UniversalTracker", "notes": "Personal finance/ops tooling", "updated": "2026-04-07"}, {"name": "private-dashboard", "bucket": "internal", "stage": "build", "source": "GitHub", "url": "https://github.com/JMG424/private-dashboard", "notes": "Personal dashboard", "updated": "2026-03-16"}, {"name": "Frame Studio", "bucket": "internal", "stage": "build", "source": "GitHub", "url": "https://github.com/JMG424/frame-studio", "notes": "Internal creative tool for WD AI content", "updated": "2026-07-28"}, {"name": "peptide-setup walkthrough", "bucket": "internal", "stage": "conversation", "source": "GitHub", "url": "https://github.com/JMG424/peptide-setup", "notes": "Agentic setup docs", "updated": "2026-04-20"}, {"name": "Realtime voice chat (Codex)", "bucket": "internal", "stage": "build", "source": "Codex folder", "url": "", "notes": "Codex experiments Aug 6", "updated": "2026-08-06"}, {"name": "Operating Dashboard (this app)", "bucket": "internal", "stage": "build", "source": "Manual", "url": "", "notes": "Weekly 5% + incubator board", "updated": "2026-09-14"}];
+const DEFAULTS = {
+  weekOf: "2026-09-14",
+  status: "proposed",
+  bets: [
+    {id:"main",role:"MAIN",title:"Micro1 referrals",details:"Wait on Sophia for intro context; then warm intros. Mario in process. WD AI parked.",receipt:"sent or replied",done:false,notes:""},
+    {id:"s1",role:"SUPPORT 1",title:"Mimi — packaging + cafes + FLIP",details:"Cafe outreach; pause kitchen offer; packaging for retail; Modern Modes; FLIP follow-up.",receipt:"decided or paid or shipped",done:false,notes:""},
+    {id:"s2",role:"SUPPORT 2",title:"MGC — personal outreach",details:"Launch weak; cash from Michelle direct reach. Scripts for quiet warm leads (2 weeks).",receipt:"decided + sent after approve",done:false,notes:""}
+  ],
+  cuts: ["Flash/Meta/Kit rewrite","Deal Machines / WD landing push","Micro1 watches unless reapply","Vault cleanup / security / Kal","Mimi content as 3rd MAIN"],
+  lanes: [
+    {lane:"Consulting",goal:"Micro1 referral intros via Sophia",status:"Waiting",owner:"Jason / GMoney"},
+    {lane:"Consulting",goal:"Mario job",status:"In process",owner:"Jason"},
+    {lane:"Consulting",goal:"Work Different AI landing",status:"Parked",owner:"Jason"},
+    {lane:"MGC",goal:"Personal outreach engine",status:"Active",owner:"Michelle / MGC Ops"},
+    {lane:"MGC",goal:"Post-flash cash recon",status:"Needed",owner:"Michelle Ops / Ledger"},
+    {lane:"Mimi",goal:"New packaging for retail",status:"Priority",owner:"Mimi / Jason"},
+    {lane:"Mimi",goal:"Cafe / Modern Modes outreach",status:"This week",owner:"Mimi"},
+    {lane:"Mimi",goal:"FLIP food-liability closed",status:"Follow up",owner:"Jason / Mimi"},
+    {lane:"Mimi",goal:"Content Spotlight/X/TikTok",status:"Season",owner:"Mimi"},
+    {lane:"Household",goal:"Michelle Needs parking list",status:"House Manager",owner:"House Manager"}
+  ],
+  leverage: [
+    {lane:"Consulting",lever:"Qualified reach via Micro1 intros",move:"Unblock Sophia → intro script"},
+    {lane:"Mimi",lever:"Retail packaging + cafe demand",move:"Cafe meeting · packaging · FLIP"},
+    {lane:"MGC",lever:"Messaging via personal reach",move:"Draft scripts · quiet warm list"}
+  ],
+  notes: [{id:"n1",date:"2026-09-14",title:"Incubator matter",body:"Projects are conversation pieces at minimum and possible revenue. Pull GitHub + Codex/ChatGPT developments into this board."}],
+  incubator: SEED_INCUBATOR,
+  log: {shipped:"",missed:"",next:""},
+  incFilter: "all",
+  incBucket: "all",
+  incSearch: ""
+};
+let state = load();
+function load(){try{const r=localStorage.getItem(STORAGE_KEY); if(!r) return structuredClone(DEFAULTS); const p=JSON.parse(r); const s={...structuredClone(DEFAULTS),...p}; if(!p.incubator) s.incubator=structuredClone(SEED_INCUBATOR); return s;}catch{return structuredClone(DEFAULTS)}}
+function save(t=true){localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); if(t) toast("Saved locally")}
+function toast(m){const el=document.getElementById("toast"); el.textContent=m; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),1400)}
+function roleTag(role){if(role.startsWith("MAIN"))return"main"; if(role.startsWith("SUPPORT"))return"support"; return"cut"}
+function setByPath(path,value){const parts=path.split("."); let cur=state; for(let i=0;i<parts.length-1;i++){const k=/^\d+$/.test(parts[i])?Number(parts[i]):parts[i]; cur=cur[k]} const last=parts.at(-1); const lk=/^\d+$/.test(last)?Number(last):last; cur[lk]=value; save(false)}
+
+function renderBets(){
+  const grid=document.getElementById("betsGrid"); grid.innerHTML="";
+  state.bets.forEach((bet,idx)=>{
+    const art=document.createElement("article"); art.className="card"+(bet.done?" done":"");
+    art.innerHTML=`<div class="row" style="justify-content:space-between;margin-top:0"><span class="tag ${roleTag(bet.role)}">${bet.role}</span><label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-done="${idx}" ${bet.done?"checked":""}/> Done</label></div>
+      <h2 contenteditable="true" data-path="bets.${idx}.title"></h2>
+      <div class="field"><div class="label">Details</div><div contenteditable="true" data-path="bets.${idx}.details"></div></div>
+      <div class="field"><div class="label">Friday receipt</div><div contenteditable="true" data-path="bets.${idx}.receipt"></div></div>
+      <div class="field"><div class="label">Notes</div><div contenteditable="true" data-path="bets.${idx}.notes"></div></div>`;
+    grid.appendChild(art);
+    ["title","details","receipt","notes"].forEach(k=>art.querySelector(`[data-path="bets.${idx}.${k}"]`).textContent=bet[k]||"");
+  });
+}
+function renderCuts(){
+  const list=document.getElementById("cutsList"); list.innerHTML="";
+  state.cuts.forEach((cut,idx)=>{
+    const li=document.createElement("li");
+    li.innerHTML=`<span class="muted">•</span><div contenteditable="true" data-path="cuts.${idx}" style="flex:1"></div><button data-del-cut="${idx}">✕</button>`;
+    list.appendChild(li); li.querySelector("[contenteditable]").textContent=cut;
+  });
+}
+function renderLanes(){
+  const names=["Consulting","MGC","Mimi","Household"]; const grid=document.getElementById("lanesGrid"); grid.innerHTML="";
+  names.forEach(laneName=>{
+    const items=state.lanes.map((g,i)=>({...g,i})).filter(g=>g.lane===laneName);
+    const card=document.createElement("article"); card.className="card";
+    card.innerHTML=`<h3>${laneName}</h3><table><thead><tr><th>Season goal</th><th>Status</th><th>Owner</th><th></th></tr></thead><tbody></tbody></table>`;
+    const tb=card.querySelector("tbody");
+    items.forEach(g=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td><div contenteditable="true" data-path="lanes.${g.i}.goal"></div></td><td><div contenteditable="true" data-path="lanes.${g.i}.status"></div></td><td><div contenteditable="true" data-path="lanes.${g.i}.owner"></div></td><td><button data-del-lane="${g.i}">✕</button></td>`;
+      tb.appendChild(tr);
+      tr.querySelector(`[data-path="lanes.${g.i}.goal"]`).textContent=g.goal;
+      tr.querySelector(`[data-path="lanes.${g.i}.status"]`).textContent=g.status;
+      tr.querySelector(`[data-path="lanes.${g.i}.owner"]`).textContent=g.owner;
+    });
+    grid.appendChild(card);
+  });
+}
+function renderIncubator(){
+  const q=(state.incSearch||"").toLowerCase(); const f=state.incFilter||"all"; const b=state.incBucket||"all";
+  const grid=document.getElementById("incGrid"); grid.innerHTML="";
+  state.incubator.forEach((p,idx)=>{
+    if(f!=="all" && p.stage!==f) return; if(b!=="all" && (p.bucket||"revenue")!==b) return;
+    const hay=`${p.name} ${p.notes} ${p.source}`.toLowerCase();
+    if(q && !hay.includes(q)) return;
+    const art=document.createElement("article"); art.className="card";
+    art.innerHTML=`<div class="row" style="justify-content:space-between;margin-top:0">
+        <span class="tag ${p.stage}">${p.stage}</span>
+        <div class="row" style="margin-top:0">
+          <select data-bucket="${idx}" style="width:auto">
+            <option value="revenue">revenue project</option>
+            <option value="internal">internal tool</option>
+          </select>
+          <select data-stage="${idx}" style="width:auto">
+            <option value="conversation">conversation</option>
+            <option value="build">build</option>
+            <option value="revenue">revenue</option>
+            <option value="paused">paused</option>
+          </select>
+        </div>
+      </div>
+      <h2 contenteditable="true" data-path="incubator.${idx}.name"></h2>
+      <div class="muted">${p.source||""} · updated <span contenteditable="true" data-path="incubator.${idx}.updated"></span></div>
+      <div class="field"><div class="label">Notes</div><div contenteditable="true" data-path="incubator.${idx}.notes"></div></div>
+      <div class="field"><div class="label">URL</div><div contenteditable="true" data-path="incubator.${idx}.url"></div></div>
+      <div class="row">${p.url?`<a href="${p.url}" target="_blank" rel="noopener">Open</a>`:""}<button data-del-inc="${idx}">Remove</button></div>`;
+    grid.appendChild(art);
+    art.querySelector(`select[data-stage="${idx}"]`).value=p.stage;
+    art.querySelector(`select[data-bucket="${idx}"]`).value=p.bucket||"revenue";
+    art.querySelector(`[data-path="incubator.${idx}.name"]`).textContent=p.name||"";
+    art.querySelector(`[data-path="incubator.${idx}.updated"]`).textContent=p.updated||"";
+    art.querySelector(`[data-path="incubator.${idx}.notes"]`).textContent=p.notes||"";
+    art.querySelector(`[data-path="incubator.${idx}.url"]`).textContent=p.url||"";
+  });
+}
+function renderNotes(){
+  const grid=document.getElementById("notesGrid"); grid.innerHTML="";
+  state.notes.forEach((n,idx)=>{
+    const art=document.createElement("article"); art.className="card note-card";
+    art.innerHTML=`<div class="row" style="justify-content:space-between;margin-top:0"><input type="date" data-note-date="${idx}" style="width:auto"/><button data-del-note="${idx}">✕</button></div>
+      <h2 contenteditable="true" data-path="notes.${idx}.title"></h2>
+      <div contenteditable="true" data-path="notes.${idx}.body"></div>`;
+    grid.appendChild(art);
+    art.querySelector("input").value=n.date||"";
+    art.querySelector(`[data-path="notes.${idx}.title"]`).textContent=n.title||"";
+    art.querySelector(`[data-path="notes.${idx}.body"]`).textContent=n.body||"";
+  });
+}
+function renderLeverage(){
+  const body=document.getElementById("leverageBody"); body.innerHTML="";
+  state.leverage.forEach((row,idx)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td><div contenteditable="true" data-path="leverage.${idx}.lane"></div></td><td><div contenteditable="true" data-path="leverage.${idx}.lever"></div></td><td><div contenteditable="true" data-path="leverage.${idx}.move"></div></td><td><button data-del-lev="${idx}">✕</button></td>`;
+    body.appendChild(tr);
+    tr.querySelector(`[data-path="leverage.${idx}.lane"]`).textContent=row.lane;
+    tr.querySelector(`[data-path="leverage.${idx}.lever"]`).textContent=row.lever;
+    tr.querySelector(`[data-path="leverage.${idx}.move"]`).textContent=row.move;
+  });
+}
+function renderLog(){
+  document.getElementById("logShipped").textContent=state.log.shipped||"";
+  document.getElementById("logMissed").textContent=state.log.missed||"";
+  document.getElementById("logNext").textContent=state.log.next||"";
+}
+function renderAll(){
+  document.getElementById("weekOf").value=state.weekOf||"";
+  document.getElementById("weekStatus").value=state.status||"proposed";
+  document.getElementById("incSearch").value=state.incSearch||"";
+  document.querySelectorAll("[data-stage-filter]").forEach(b=>b.classList.toggle("active",(b.dataset.stageFilter=== (state.incFilter||"all"))));
+  document.querySelectorAll("[data-bucket-filter]").forEach(b=>b.classList.toggle("active",(b.dataset.bucketFilter=== (state.incBucket||"all"))));
+  renderBets(); renderCuts(); renderLanes(); renderIncubator(); renderNotes(); renderLeverage(); renderLog();
+}
+
+document.getElementById("tabs").addEventListener("click",e=>{
+  const btn=e.target.closest("button[data-tab]"); if(!btn) return;
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  btn.classList.add("active"); document.getElementById(btn.dataset.tab).classList.add("active");
+});
+document.getElementById("weekOf").addEventListener("change",e=>{state.weekOf=e.target.value; save()});
+document.getElementById("weekStatus").addEventListener("change",e=>{state.status=e.target.value; save()});
+document.getElementById("incSearch").addEventListener("input",e=>{state.incSearch=e.target.value; save(false); renderIncubator()});
+document.querySelector(".filters")?.addEventListener("click",e=>{
+  const st=e.target.closest("[data-stage-filter]"); if(st){state.incFilter=st.dataset.stageFilter; save(false); renderAll(); return}
+  const bk=e.target.closest("[data-bucket-filter]"); if(bk){state.incBucket=bk.dataset.bucketFilter; save(false); renderAll();}
+});
+document.body.addEventListener("input",e=>{
+  const path=e.target.getAttribute("data-path"); if(path) setByPath(path,e.target.textContent);
+  if(e.target.id==="logShipped"){state.log.shipped=e.target.textContent; save(false)}
+  if(e.target.id==="logMissed"){state.log.missed=e.target.textContent; save(false)}
+  if(e.target.id==="logNext"){state.log.next=e.target.textContent; save(false)}
+});
+document.body.addEventListener("change",e=>{
+  if(e.target.matches("input[data-done]")){const i=+e.target.dataset.done; state.bets[i].done=e.target.checked; save(); renderBets()}
+  if(e.target.matches("select[data-stage]")){const i=+e.target.dataset.stage; state.incubator[i].stage=e.target.value; save(); renderIncubator()}
+  if(e.target.matches("select[data-bucket]")){const i=+e.target.dataset.bucket; state.incubator[i].bucket=e.target.value; save(); renderIncubator()}
+  if(e.target.matches("input[data-note-date]")){const i=+e.target.dataset.noteDate; state.notes[i].date=e.target.value; save()}
+});
+document.body.addEventListener("click",e=>{
+  const map=[["data-del-cut","cuts",renderCuts],["data-del-lane","lanes",renderLanes],["data-del-lev","leverage",renderLeverage],["data-del-inc","incubator",renderIncubator],["data-del-note","notes",renderNotes]];
+  for(const [attr,key,fn] of map){const v=e.target.getAttribute(attr); if(v!=null){state[key].splice(+v,1); save(); fn(); return}}
+});
+document.getElementById("addCut").onclick=()=>{state.cuts.push("New cut"); save(); renderCuts()};
+document.getElementById("addLaneGoal").onclick=()=>{state.lanes.push({lane:prompt("Lane?","Mimi")||"Mimi",goal:"New goal",status:"New",owner:"Jason"}); save(); renderLanes()};
+document.getElementById("addLeverage").onclick=()=>{state.leverage.push({lane:"New",lever:"Lever",move:"Move"}); save(); renderLeverage()};
+document.getElementById("addInc").onclick=()=>{state.incubator.unshift({name:"New project",bucket:"revenue",stage:"conversation",source:"Manual",url:"",notes:"",updated:new Date().toISOString().slice(0,10)}); save(); renderIncubator()};
+document.getElementById("addNote").onclick=()=>{state.notes.unshift({id:"n"+Date.now(),date:new Date().toISOString().slice(0,10),title:"New note",body:""}); save(); renderNotes()};
+document.getElementById("btnSave").onclick=()=>save(true);
+document.getElementById("btnExport").onclick=()=>{const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:"application/json"})); a.download=`operating-dashboard-${state.weekOf||"week"}.json`; a.click(); toast("Exported")};
+document.getElementById("btnImport").onclick=()=>document.getElementById("fileImport").click();
+document.getElementById("fileImport").onchange=async e=>{const f=e.target.files?.[0]; if(!f)return; try{state={...structuredClone(DEFAULTS),...JSON.parse(await f.text())}; save(); renderAll(); toast("Imported")}catch{toast("Import failed")} e.target.value=""};
+document.getElementById("btnReset").onclick=()=>{if(!confirm("Reset defaults? Clears local edits."))return; state=structuredClone(DEFAULTS); save(); renderAll(); toast("Reset")};
+renderAll(); save(false);
+</script>
+</body>
+</html>
