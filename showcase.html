@@ -294,10 +294,28 @@
     font-size: 12px;
     font-weight: 700;
   }
+  /* Connectors: hairline ink at low opacity, one soft pulse travelling upward every few seconds */
   .flow {
     display: block;
     width: 100%;
     height: 64px;
+    overflow: visible;
+  }
+  .flow .rail {
+    stroke: var(--ink);
+    stroke-opacity: 0.22;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+  }
+  /* The pulse itself is driven by the Web Animations API in the script below
+     (slow, eased, paused when the tab is hidden, skipped for reduced motion). */
+  .flow .pulse {
+    stroke: var(--teal);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 16 400;
+    stroke-dashoffset: 16;
+    opacity: 0;
   }
   .nodes {
     display: grid;
@@ -305,6 +323,12 @@
     gap: 16px;
   }
   .node {
+    position: relative;
+    width: 100%;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
     border-radius: 16px;
     padding: 20px 22px;
     border: 1px solid var(--line-strong);
@@ -312,7 +336,24 @@
     display: flex;
     gap: 16px;
     align-items: flex-start;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   }
+  .node:hover, .node:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lift);
+    border-color: rgba(15, 110, 104, 0.45);
+    outline: none;
+  }
+  .node:focus-visible { box-shadow: var(--shadow-lift), 0 0 0 3px rgba(15, 110, 104, 0.35); }
+  .node .hint {
+    position: absolute;
+    top: 16px; right: 18px;
+    color: var(--ink-muted);
+    font-size: 0.75em;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .node:hover .hint, .node:focus-visible .hint { opacity: 1; }
   .node.base { background: var(--teal-soft); border-color: rgba(15, 110, 104, 0.25); }
   .node .icon {
     flex: 0 0 auto;
@@ -531,6 +572,47 @@
     color: var(--teal); margin-bottom: 8px;
   }
   .panel-body p { margin: 0; color: var(--ink-soft); line-height: 1.5; }
+  .panel-body section[hidden] { display: none; }
+  .panel-body ul.plain {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 9px;
+  }
+  .panel-body ul.plain li {
+    position: relative;
+    padding-left: 20px;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  .panel-body ul.plain li::before {
+    content: "";
+    position: absolute;
+    left: 2px; top: 0.62em;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--teal);
+    opacity: 0.75;
+  }
+  .panel-body ul.plain.why li { color: var(--ink-soft); }
+  .panel-body ul.plain.why li::before { background: var(--ink-muted); opacity: 0.6; }
+  .ex-tag {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 8px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: var(--cream);
+    color: var(--ink-muted);
+    font-size: 0.68em;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    position: relative;
+    top: -1px;
+  }
   .panel-body .status-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .panel-body .status-row .now { margin: 0; }
   .panel-note {
@@ -566,7 +648,7 @@
   <section aria-labelledby="agentsHead">
     <div class="section-head">
       <h2 id="agentsHead">Six specialist agents</h2>
-      <p>Click a card for what it does, what it can read, and what needs approval.</p>
+      <p>Click a card for current priorities, what it does, what it can read, and what needs approval.</p>
     </div>
     <div class="grid" id="grid"></div>
     <p class="rsi-note"><strong>RSI means recursive self-improvement.</strong> The Agent Manager reviews how the other agents work and helps them improve over time.</p>
@@ -576,7 +658,7 @@
   <section aria-labelledby="archHead">
     <div class="section-head">
       <h2 id="archHead">How it fits together</h2>
-      <p>Context flows up from the base. Nothing leaves without a person.</p>
+      <p>Context flows up from the base. Nothing leaves without a person. Click any box for details.</p>
     </div>
     <div class="arch">
 
@@ -589,10 +671,14 @@
         <div class="chips" id="chips"></div>
       </div>
 
+      <!-- Upper connectors: interfaces to agents. Pulse arrives here second. -->
       <svg class="flow" data-flow aria-hidden="true">
-        <line x1="20%" y1="64" x2="20%" y2="0" stroke="#CFC8BB" stroke-width="2" stroke-dasharray="4 7"></line>
-        <line x1="50%" y1="64" x2="50%" y2="0" stroke="#CFC8BB" stroke-width="2" stroke-dasharray="4 7"></line>
-        <line x1="80%" y1="64" x2="80%" y2="0" stroke="#CFC8BB" stroke-width="2" stroke-dasharray="4 7"></line>
+        <line class="rail" x1="20%" y1="64" x2="20%" y2="0"></line>
+        <line class="rail" x1="50%" y1="64" x2="50%" y2="0"></line>
+        <line class="rail" x1="80%" y1="64" x2="80%" y2="0"></line>
+        <line class="pulse" x1="20%" y1="64" x2="20%" y2="0" data-delay="1.9"></line>
+        <line class="pulse" x1="50%" y1="64" x2="50%" y2="0" data-delay="2.1"></line>
+        <line class="pulse" x1="80%" y1="64" x2="80%" y2="0" data-delay="2.3"></line>
       </svg>
 
       <div class="layer">
@@ -602,7 +688,7 @@
           <p>Two peers. Neither is primary, neither is a fallback.</p>
         </div>
         <div class="nodes">
-          <div class="node">
+          <button class="node" type="button" data-node="hermes" aria-label="Hermes: open details">
             <div class="icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"></path><path d="M8 9h8M8 12h5"></path></svg>
             </div>
@@ -611,8 +697,9 @@
               <p>Text and chat interface. Ask, review, and approve from a keyboard.</p>
               <span class="tag">Peer</span>
             </div>
-          </div>
-          <div class="node">
+            <span class="hint">Details</span>
+          </button>
+          <button class="node" type="button" data-node="grok" aria-label="Grok Bot: open details">
             <div class="icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"></path></svg>
             </div>
@@ -621,15 +708,20 @@
               <p>Voice interface. Same agents, same rules, hands free.</p>
               <span class="tag">Peer · voice</span>
             </div>
-          </div>
+            <span class="hint">Details</span>
+          </button>
         </div>
         <p class="peer-note">Both interfaces reach the same agents and the same context layer.</p>
       </div>
 
+      <!-- Lower connectors: context layer to interfaces. Pulse starts here. -->
       <svg class="flow" data-flow aria-hidden="true">
-        <line x1="20%" y1="64" x2="20%" y2="0" stroke="#CFC8BB" stroke-width="2" stroke-dasharray="4 7"></line>
-        <line x1="50%" y1="64" x2="50%" y2="0" stroke="#CFC8BB" stroke-width="2" stroke-dasharray="4 7"></line>
-        <line x1="80%" y1="64" x2="80%" y2="0" stroke="#CFC8BB" stroke-width="2" stroke-dasharray="4 7"></line>
+        <line class="rail" x1="20%" y1="64" x2="20%" y2="0"></line>
+        <line class="rail" x1="50%" y1="64" x2="50%" y2="0"></line>
+        <line class="rail" x1="80%" y1="64" x2="80%" y2="0"></line>
+        <line class="pulse" x1="20%" y1="64" x2="20%" y2="0" data-delay="0"></line>
+        <line class="pulse" x1="50%" y1="64" x2="50%" y2="0" data-delay="0.2"></line>
+        <line class="pulse" x1="80%" y1="64" x2="80%" y2="0" data-delay="0.4"></line>
       </svg>
 
       <div class="layer">
@@ -639,7 +731,7 @@
           <p>One place the agents read from. Private, local, versioned.</p>
         </div>
         <div class="nodes">
-          <div class="node base">
+          <button class="node base" type="button" data-node="vault" aria-label="Obsidian vault: open details">
             <div class="icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v10l-7 4-7-4V7z"></path><path d="M12 11l7-4M12 11v10M12 11L5 7"></path></svg>
             </div>
@@ -648,8 +740,9 @@
               <p>Source of truth. Plain notes that a person can open and read.</p>
               <span class="tag">Source of truth</span>
             </div>
-          </div>
-          <div class="node base">
+            <span class="hint">Details</span>
+          </button>
+          <button class="node base" type="button" data-node="gbrain" aria-label="GBrain: open details">
             <div class="icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4.5-4.5"></path><path d="M8 11h6M11 8v6"></path></svg>
             </div>
@@ -658,7 +751,8 @@
               <p>Search and memory over the vault, so agents find the right note fast.</p>
               <span class="tag">Search and memory</span>
             </div>
-          </div>
+            <span class="hint">Details</span>
+          </button>
         </div>
       </div>
 
@@ -713,24 +807,36 @@
     </button>
   </div>
   <div class="panel-body">
-    <section>
+    <section data-for="agent" id="secPriorities">
+      <h4>Current priorities</h4>
+      <ul class="plain" id="panelPriorities"></ul>
+    </section>
+    <section data-for="agent">
       <div class="status-row">
         <span class="pill working" id="panelPill"><i></i><span>Working</span></span>
         <div class="now"><span class="k">Now:</span><span class="v" id="panelNow"></span></div>
       </div>
     </section>
-    <section>
+    <section data-for="agent">
       <h4>What it does</h4>
       <p id="panelDoes"></p>
     </section>
-    <section>
+    <section data-for="agent">
       <h4>What it can read</h4>
       <p id="panelReads"></p>
     </section>
-    <section>
+    <section data-for="agent">
       <h4>What needs approval</h4>
       <p id="panelApproval"></p>
       <div class="panel-note">Approval happens in Hermes or by voice through Grok Bot. Until then, the draft stays in the vault.</div>
+    </section>
+    <section data-for="node" hidden>
+      <h4 id="panelNodeTitle">What it is</h4>
+      <ul class="plain" id="panelNodeBullets"></ul>
+    </section>
+    <section data-for="node-why" hidden>
+      <h4>Why it matters</h4>
+      <ul class="plain why" id="panelWhy"></ul>
     </section>
   </div>
 </aside>
@@ -743,6 +849,96 @@
   try {
     reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   } catch (e) { reduceMotion = false; }
+
+  // PRIORITIES — edit here
+  // Keys match agent ids below. Add "(example)" at the end of an item to show a subtle Example tag.
+  var PRIORITIES = {
+    mimi: [
+      'Finish retail-ready packaging',
+      'Cafe outreach for first wholesale accounts',
+      'Order larger sample bags',
+      'Plan short-form content (example)'
+    ],
+    michelle: [
+      'Personal outreach to top-tier past clients by text',
+      'Decide next offer after the recent flash sale',
+      'Keep follow-ups moving from the CRM',
+      'Weekly launch checklist (example)'
+    ],
+    wda: [
+      'Run client pilot demos on test data',
+      'Build a secure context layer for a first client',
+      'Turn demos into a clear proposal',
+      'Grow referral pipeline (example)'
+    ],
+    health: [
+      'Follow the daily whole-food plan',
+      'Low-carb meals with intermittent fasting',
+      'Track progress toward goal weight',
+      'Prepare for next lab retest'
+    ],
+    finance: [
+      'Weekly cash summary across businesses',
+      'Categorize expenses and receipts',
+      'Keep tax items organized for review (example)',
+      'Nothing is paid without approval'
+    ],
+    manager: [
+      'Route new work to the right agent',
+      'Review drafts before they reach Jason',
+      'Improve agents from feedback each week',
+      'Spot repeat tasks to automate'
+    ]
+  };
+
+  // Context and interface boxes in the diagram. Same panel, plain-language bullets.
+  var CONTEXT_WHY = [
+    'Context is what turns a chatbot into an agent',
+    'The layer is shared by every agent so nothing is re-explained',
+    'Access is controlled and every action still needs human approval'
+  ];
+  var NODES = [
+    {
+      id: 'vault', mono: 'OV', name: 'Obsidian vault', role: 'Source of truth in the context layer',
+      title: 'What it is',
+      bullets: [
+        "Source of truth. Plain-text notes on Jason's own machine: people, projects, decisions, meeting notes, daily logs",
+        'Agents read it before acting and write back what they learn',
+        'Owned by Jason, portable, not locked in a vendor'
+      ],
+      why: CONTEXT_WHY
+    },
+    {
+      id: 'gbrain', mono: 'GB', name: 'GBrain', role: 'Search and memory in the context layer',
+      title: 'What it is',
+      bullets: [
+        'Search and memory over the vault',
+        'Lets any agent find the right note, person, or past decision in seconds, with the source cited',
+        'Index can be rebuilt from the vault at any time'
+      ],
+      why: CONTEXT_WHY
+    },
+    {
+      id: 'hermes', mono: 'HM', name: 'Hermes', role: 'Interface peer: text and chat',
+      title: 'What it is',
+      bullets: [
+        'Agent runtime and mission control',
+        'Runs the agents, schedules work, keeps logs',
+        'Ask, review, and approve from a keyboard'
+      ],
+      why: null
+    },
+    {
+      id: 'grok', mono: 'GK', name: 'Grok Bot', role: 'Interface peer: voice',
+      title: 'What it is',
+      bullets: [
+        'The voice-facing interface. Talk to the whole team',
+        'Same context layer as Hermes (peers, neither primary)',
+        'Same agents, same rules, hands free'
+      ],
+      why: null
+    }
+  ];
 
   // ---------- Data ----------
   var STATUSES = [
@@ -845,6 +1041,27 @@
   function agentById(id) {
     for (var i = 0; i < AGENTS.length; i++) if (AGENTS[i].id === id) return AGENTS[i];
     return AGENTS[0];
+  }
+  function nodeById(id) {
+    for (var i = 0; i < NODES.length; i++) if (NODES[i].id === id) return NODES[i];
+    return null;
+  }
+  // Render a list of strings into a ul. Items ending in "(example)" get a subtle tag.
+  function fillList(ul, list) {
+    ul.textContent = '';
+    (list || []).forEach(function (raw) {
+      var li = el('li');
+      var text = String(raw).trim();
+      var marker = '(example)';
+      var tail = text.slice(-marker.length).toLowerCase();
+      if (text.length > marker.length && tail === marker) {
+        li.appendChild(document.createTextNode(text.slice(0, -marker.length).trim()));
+        li.appendChild(el('span', 'ex-tag', 'Example'));
+      } else {
+        li.textContent = text;
+      }
+      ul.appendChild(li);
+    });
   }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function timeNow(d) {
@@ -1092,8 +1309,30 @@
   var panelMono = byId('panelMono'), panelName = byId('panelName'), panelRole = byId('panelRole');
   var panelPill = byId('panelPill'), panelNow = byId('panelNow');
   var panelDoes = byId('panelDoes'), panelReads = byId('panelReads'), panelApproval = byId('panelApproval');
+  var panelPriorities = byId('panelPriorities');
+  var panelNodeTitle = byId('panelNodeTitle'), panelNodeBullets = byId('panelNodeBullets'), panelWhy = byId('panelWhy');
+  var panelSections = panel.querySelectorAll('.panel-body section[data-for]');
   var panelAgent = null;
   var lastFocus = null;
+
+  // Show only the sections that belong to this kind of panel: 'agent' or 'node' (plus 'node-why').
+  function showSections(kinds) {
+    Array.prototype.forEach.call(panelSections, function (sec) {
+      var k = sec.getAttribute('data-for');
+      if (kinds.indexOf(k) >= 0) sec.removeAttribute('hidden');
+      else sec.setAttribute('hidden', '');
+    });
+  }
+  function revealPanel() {
+    lastFocus = document.activeElement;
+    panel.classList.add('open');
+    backdrop.classList.add('open');
+    panel.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    var body = panel.querySelector('.panel-body');
+    if (body) body.scrollTop = 0;
+    setTimeout(function () { byId('panelClose').focus(); }, 60);
+  }
 
   function openPanel(id) {
     var a = agentById(id);
@@ -1101,18 +1340,35 @@
     panelMono.textContent = a.mono;
     panelName.textContent = a.name;
     panelRole.textContent = a.role;
+    fillList(panelPriorities, PRIORITIES[a.id]);
     setPill(panelPill, a.status);
     panelNow.textContent = a.now[a.nowIdx];
     panelDoes.textContent = a.does;
     panelReads.textContent = a.reads;
     panelApproval.textContent = a.approval;
-    lastFocus = document.activeElement;
-    panel.classList.add('open');
-    backdrop.classList.add('open');
-    panel.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    setTimeout(function () { byId('panelClose').focus(); }, 60);
+    showSections(['agent']);
+    revealPanel();
   }
+  function openNodePanel(id) {
+    var n = nodeById(id);
+    if (!n) return;
+    panelAgent = n.id;
+    panelMono.textContent = n.mono;
+    panelName.textContent = n.name;
+    panelRole.textContent = n.role;
+    panelNodeTitle.textContent = n.title || 'What it is';
+    fillList(panelNodeBullets, n.bullets);
+    if (n.why && n.why.length) {
+      fillList(panelWhy, n.why);
+      showSections(['node', 'node-why']);
+    } else {
+      showSections(['node']);
+    }
+    revealPanel();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-node]'), function (btn) {
+    btn.addEventListener('click', function () { openNodePanel(btn.getAttribute('data-node')); });
+  });
   function closePanel() {
     if (!panelAgent) return;
     panelAgent = null;
@@ -1129,46 +1385,33 @@
   });
 
   // ---------- Flow animation (context -> interfaces -> agents) ----------
-  var flows = document.querySelectorAll('[data-flow]');
-  var SVG_NS = 'http://www.w3.org/2000/svg';
-  var dots = [];
-  Array.prototype.forEach.call(flows, function (svg, f) {
-    ['20%', '50%', '80%'].forEach(function (x, i) {
-      var c = document.createElementNS(SVG_NS, 'circle');
-      c.setAttribute('cx', x);
-      c.setAttribute('cy', 64);
-      c.setAttribute('r', 5);
-      c.setAttribute('fill', '#0F6E68');
-      c.setAttribute('opacity', '0');
-      svg.appendChild(c);
-      dots.push({ node: c, phase: (i * 0.33 + f * 0.17) % 1 });
+  // The connectors are static hairlines. One soft pulse travels up each connector every
+  // seven seconds, lower row first, then the upper row, so the eye reads base to top.
+  // Uses the Web Animations API (transform-free: dash offset plus opacity), pauses while
+  // the tab is hidden, and is skipped entirely when the user prefers reduced motion.
+  var pulseAnims = [];
+  var pulseLines = document.querySelectorAll('.flow .pulse');
+  if (!reduceMotion && pulseLines.length && pulseLines[0].animate) {
+    var PERIOD = 7000;
+    Array.prototype.forEach.call(pulseLines, function (line) {
+      var delay = parseFloat(line.getAttribute('data-delay') || '0') * 1000;
+      var glide = 'cubic-bezier(0.45, 0, 0.25, 1)';
+      var anim = line.animate([
+        { strokeDashoffset: '16px',  opacity: 0,   offset: 0,    easing: glide },
+        { strokeDashoffset: '8px',   opacity: 0.7, offset: 0.06, easing: glide },
+        { strokeDashoffset: '-60px', opacity: 0.7, offset: 0.24, easing: glide },
+        { strokeDashoffset: '-80px', opacity: 0,   offset: 0.32, easing: 'linear' },
+        { strokeDashoffset: '-80px', opacity: 0,   offset: 1 }
+      ], { duration: PERIOD, delay: delay, iterations: Infinity });
+      pulseAnims.push(anim);
     });
-  });
-  var lines = document.querySelectorAll('[data-flow] line');
-
-  if (!reduceMotion) {
-    var start = null;
-    var period = 2600; // ms for one trip from base to top
-    function frame(ts) {
-      if (start === null) start = ts;
-      var t = (ts - start) / period;
-      for (var i = 0; i < dots.length; i++) {
-        var p = (t + dots[i].phase) % 1;         // 0 at bottom, 1 at top
-        var y = 64 - p * 64;
-        var fade = Math.sin(p * Math.PI);         // soft in, soft out
-        dots[i].node.setAttribute('cy', y.toFixed(2));
-        dots[i].node.setAttribute('opacity', (0.15 + 0.85 * fade).toFixed(2));
-      }
-      var off = -((ts - start) / 40) % 1100;
-      for (var j = 0; j < lines.length; j++) lines[j].setAttribute('stroke-dashoffset', off.toFixed(2));
-      window.requestAnimationFrame(frame);
-    }
-    window.requestAnimationFrame(frame);
-  } else {
-    for (var k = 0; k < dots.length; k++) {
-      dots[k].node.setAttribute('cy', 64 - dots[k].phase * 64);
-      dots[k].node.setAttribute('opacity', '0.6');
-    }
+    var syncFlowPause = function () {
+      pulseAnims.forEach(function (a) {
+        try { if (document.hidden) a.pause(); else a.play(); } catch (e) {}
+      });
+    };
+    document.addEventListener('visibilitychange', syncFlowPause);
+    syncFlowPause();
   }
 })();
 </script>
