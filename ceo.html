@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index, follow">
+<title>CEO Dashboard · example</title>
+<style>
+  :root {
+    --bg: #F7F4EE;
+    --card: #FFFDF9;
+    --ink: #1A1A1A;
+    --ink-2: #4A4740;
+    --ink-3: #7A766D;
+    --line: #E6E0D4;
+    --line-2: #D9D2C4;
+    --accent: #0F6E68;
+    --accent-soft: #E4F0EE;
+    --amber-soft: #FBEFD9;
+    --amber-ink: #8A5A00;
+    --parked-soft: #EEEBE4;
+    --radius: 14px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 14px 18px 20px;
+  }
+
+  /* ---------- Header ---------- */
+  .header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .header h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .header .sub {
+    margin: 4px 0 0;
+    color: var(--ink-3);
+    font-size: 15px;
+  }
+  .clockbox {
+    text-align: right;
+  }
+  .clock {
+    font-size: 30px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+  .clock-date {
+    color: var(--ink-3);
+    font-size: 14px;
+    margin-top: 2px;
+  }
+  .countdown {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .countdown.muted {
+    background: var(--parked-soft);
+    color: var(--ink-2);
+  }
+
+  /* ---------- Sections ---------- */
+  section { margin-top: 12px; }
+  .label {
+    display: block;
+    margin: 0 0 12px;
+    color: var(--ink-3);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  /* ---------- Today ---------- */
+  .today {
+    padding: 10px 12px;
+    border-left: 5px solid var(--accent);
+  }
+  .today h2 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+  }
+  .today .kind {
+    color: var(--ink-3);
+    font-weight: 500;
+    font-size: 20px;
+  }
+  .today .time {
+    margin: 10px 0 0;
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .today .why {
+    margin: 14px 0 0;
+    font-size: 17px;
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+  .today .actions {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    background: var(--accent);
+    color: #fff;
+    border: 0;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .btn:hover { background: #0B5B56; }
+  .btn svg { width: 16px; height: 16px; }
+
+  /* ---------- Moves ---------- */
+  .moves { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .move {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: start;
+    padding: 12px 14px;
+  }
+  .move input[type="checkbox"] {
+    width: 26px; height: 26px;
+    margin: 4px 0 0;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .move label {
+    cursor: pointer;
+    display: block;
+  }
+  .move .n {
+    color: var(--ink-3);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+  .move .t {
+    display: block;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-top: 2px;
+  }
+  .move .w {
+    display: block;
+    margin-top: 6px;
+    color: var(--ink-2);
+    font-size: 16px;
+  }
+  .move.done { background: #F3F1EA; }
+  .move.done .t { text-decoration: line-through; color: var(--ink-3); }
+  .move.done .w { color: var(--ink-3); }
+  .moves-foot {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--ink-3);
+    font-size: 14px;
+  }
+  .linkbtn {
+    background: none;
+    border: 0;
+    padding: 4px 6px;
+    color: var(--ink-3);
+    font: inherit;
+    font-size: 14px;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .linkbtn:hover { color: var(--ink); }
+
+  /* ---------- Decisions ---------- */
+  .decisions { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .decision { padding: 16px 20px; }
+  .decision .t { font-size: 17px; font-weight: 700; margin: 0; }
+  .decision .c { margin: 4px 0 0; color: var(--ink-2); font-size: 15px; }
+  .decision .r {
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    background: var(--accent-soft);
+    border-radius: 8px;
+    font-size: 15px;
+  }
+  .decision .r strong { color: var(--accent); }
+
+  /* ---------- Lanes ---------- */
+  .lanes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 12px;
+  }
+  .lane { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .lane .head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .lane h3 { margin: 0; font-size: 17px; font-weight: 700; }
+  .pill {
+    flex: none;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pill.ok { background: var(--accent-soft); color: var(--accent); }
+  .pill.attn { background: var(--amber-soft); color: var(--amber-ink); }
+  .pill.parked { background: var(--parked-soft); color: var(--ink-2); }
+  .lane dl { margin: 0; display: grid; gap: 6px; font-size: 14px; }
+  .lane dt { color: var(--ink-3); font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .lane dd { margin: 0; color: var(--ink-2); }
+  .lane dd.next { color: var(--ink); font-weight: 700; }
+  .lane .owner { margin-top: auto; padding-top: 6px; color: var(--ink-3); font-size: 13px; border-top: 1px dashed var(--line); }
+
+  /* ---------- Agents ---------- */
+  .agents {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+  }
+  .agent { padding: 10px 14px; font-size: 14px; }
+  .agent .name { font-weight: 700; }
+  .agent .role { color: var(--ink-3); font-size: 12px; }
+  .agent .now { margin-top: 4px; color: var(--ink-2); }
+
+  /* ---------- Parked ---------- */
+  details.parked { padding: 0; }
+  details.parked summary {
+    cursor: pointer;
+    padding: 14px 20px;
+    font-weight: 600;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  details.parked summary::-webkit-details-marker { display: none; }
+  details.parked summary::before {
+    content: "";
+    width: 8px; height: 8px;
+    border-right: 2px solid var(--ink-3);
+    border-bottom: 2px solid var(--ink-3);
+    transform: rotate(-45deg);
+    transition: transform 120ms ease;
+  }
+  details.parked[open] summary::before { transform: rotate(45deg); }
+  details.parked ul {
+    margin: 0;
+    padding: 0 14px 10px 36px;
+    color: var(--ink-2);
+    font-size: 15px;
+    columns: 2;
+    column-gap: 14px;
+  }
+  details.parked li { break-inside: avoid; margin-bottom: 4px; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-3);
+    font-size: 13px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 1. Header -->
+  <header class="header">
+    <div>
+      <h1>CEO Dashboard</h1>
+      <p class="sub">What matters · what to decide · next moves</p>
+    </div>
+    <div class="clockbox">
+      <div class="clock" id="clock" aria-live="off">--:--:--</div>
+      <div class="clock-date" id="clock-date">America/New_York</div>
+      <div class="countdown" id="countdown" role="status" aria-live="polite">Noon meeting in …</div>
+    </div>
+  </header>
+
+  <!-- 2. Today -->
+  <section aria-labelledby="today-label">
+    <span class="label" id="today-label">Today</span>
+    <div class="card today">
+      <h2>Client meeting <span class="kind">· demo + architecture gate</span></h2>
+      <p class="time">12:00–1:00 PM ET · Teams</p>
+      <p class="why">Demo first on test data; architecture as proposal. Win = client's IT lead leaves with a truthful inventory, demos they watched work, and their evidence/controls list.</p>
+    </div>
+  </section>
+
+  <!-- 3. Your 3 moves today -->
+  <section aria-labelledby="moves-label">
+    <span class="label" id="moves-label">Your 3 moves today</span>
+    <ol class="moves">
+      <li class="card move" data-move="0">
+        <input type="checkbox" id="move-0">
+        <label for="move-0">
+          <span class="n">MOVE 1</span>
+          <span class="t">Send or hold the client pre-meeting email</span>
+          <span class="w">Draft is ready for the client and their IT lead. Sets demo-first / no-surprise frame before noon. You decide.</span>
+        </label>
+      </li>
+      <li class="card move" data-move="1">
+        <input type="checkbox" id="move-1">
+        <label for="move-1">
+          <span class="n">MOVE 2</span>
+          <span class="t">Walk into noon with the three test-data demos rehearsed</span>
+          <span class="w">Inventory + morning brief + transcript→actions stop at approval. Do not connect company data.</span>
+        </label>
+      </li>
+      <li class="card move" data-move="2">
+        <input type="checkbox" id="move-2">
+        <label for="move-2">
+          <span class="n">MOVE 3</span>
+          <span class="t">After the call: start the partner personal-outreach pack</span>
+          <span class="w">Confirmed top weekly bet is MGC SMS sales; CRM top-tier texts beat new launch systems.</span>
+        </label>
+      </li>
+    </ol>
+    <div class="moves-foot">
+      <span id="moves-status">0 of 3 done</span>
+      <button type="button" class="linkbtn" id="moves-reset">Reset checks</button>
+    </div>
+  </section>
+
+  <!-- 4. Needs your decision -->
+  <section aria-labelledby="decide-label">
+    <span class="label" id="decide-label">Needs your decision</span>
+    <ul class="decisions">
+      <li class="card decision">
+        <p class="t">Client pre-meeting email</p>
+        <p class="c">Unsent draft to the client and their IT lead is ready.</p>
+        <p class="r"><strong>Recommendation:</strong> Send this morning so the IT lead arrives expecting demo-first on test data; hold only if you want zero pre-frame.</p>
+      </li>
+      <li class="card decision">
+        <p class="t">Partner outreach pack</p>
+        <p class="c">CRM top-tier texts are ready to draft for partner to send.</p>
+        <p class="r"><strong>Recommendation:</strong> Approve the pack after the noon call; specialists draft only — humans send.</p>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 5. Lanes -->
+  <section aria-labelledby="lanes-label">
+    <span class="label" id="lanes-label">Lanes</span>
+    <div class="lanes">
+
+      <article class="card lane">
+        <div class="head"><h3>Consulting (Work Different AI)</h3><span class="pill attn">Needs attention</span></div>
+        <dl>
+          <dt>Season goal</dt><dd>Turn paid client pilot into clear delivery + next step</dd>
+          <dt>This week’s bet</dt><dd>Noon demo/architecture gate with client + IT lead</dd>
+          <dt>Next move</dt><dd class="next">Run the noon meeting: demo first, architecture as proposal, collect the IT lead’s evidence list</dd>
+        </dl>
+        <div class="owner">Owner: GMoney (+ Agent26 brief)</div>
+      </article>
+
+      <article class="card lane">
+        <div class="head"><h3>MGC (partner coaching brand)</h3><span class="pill ok">On track</span></div>
+        <dl>
+          <dt>Season goal</dt><dd>Grow into an established brand via personal SMS sales</dd>
+          <dt>This week’s bet</dt><dd>Personal outreach over launch systems</dd>
+          <dt>Next move</dt><dd class="next">Ship the partner a CRM top-tier text pack; humans send, CRM logs</dd>
+        </dl>
+        <div class="owner">Owner: MGC Ops + Partner Ops</div>
+      </article>
+
+      <article class="card lane">
+        <div class="head"><h3>Mimi’s Market</h3><span class="pill ok">On track</span></div>
+        <dl>
+          <dt>Season goal</dt><dd>Granola business just starting — prove reorders + wholesale doors</dd>
+          <dt>This week’s bet</dt><dd>Support only: wholesale / sample readiness</dd>
+          <dt>Next move</dt><dd class="next">Order larger sample bags (receipt = paid) OR keep Tue door pitches on the weekly plan</dd>
+        </dl>
+        <div class="owner">Owner: Mimismarket</div>
+      </article>
+
+      <article class="card lane">
+        <div class="head"><h3>Money</h3><span class="pill parked">Parked</span></div>
+        <dl>
+          <dt>Season goal</dt><dd>Continuity visible without interrupting revenue bets</dd>
+          <dt>This week’s bet</dt><dd>Paused unless you reopen</dd>
+          <dt>Next move</dt><dd class="next">Parked items stay parked; no new spending without approval</dd>
+        </dl>
+        <div class="owner">Owner: Ledger</div>
+      </article>
+
+      <article class="card lane">
+        <div class="head"><h3>Health</h3><span class="pill ok">On track (lightweight)</span></div>
+        <dl>
+          <dt>Season goal</dt><dd>Stay on the daily health plan</dd>
+          <dt>This week’s bet</dt><dd>Stay on plan; keep it lightweight today</dd>
+          <dt>Next move</dt><dd class="next">Follow the daily health plan</dd>
+        </dl>
+        <div class="owner">Owner: Health coach</div>
+      </article>
+
+      <article class="card lane">
+        <div class="head"><h3>Home</h3><span class="pill parked">Parked</span></div>
+        <dl>
+          <dt>Season goal</dt><dd>Household needs captured, not mid-firefight</dd>
+          <dt>This week’s bet</dt><dd>Household needs list is the parking lot</dd>
+          <dt>Next move</dt><dd class="next">Add items to the household needs list when they appear; list is currently empty</dd>
+        </dl>
+        <div class="owner">Owner: House Manager</div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- 6. Agents working for you -->
+  <section aria-labelledby="agents-label">
+    <span class="label" id="agents-label">Agents working for you</span>
+    <div class="agents">
+      <div class="card agent"><div class="name">Hermes</div><div class="role">Agent runtime / mission control (peer)</div><div class="now">Standing by / routing intake</div></div>
+      <div class="card agent"><div class="name">Grok Bot</div><div class="role">Spoken interface (peer)</div><div class="now">Standing by for spoken requests</div></div>
+      <div class="card agent"><div class="name">Agent26</div><div class="role">Chief of staff</div><div class="now">Holding approval gate; ranking today’s 5% moves. Nothing sends/posts/spends without your approval.</div></div>
+      <div class="card agent"><div class="name">GMoney</div><div class="role">Consulting desk</div><div class="now">Client noon prep / pilot lane</div></div>
+      <div class="card agent"><div class="name">MGC Ops</div><div class="role">Brand / funnel / ads / email platform</div><div class="now">Ready to draft partner outreach pack</div></div>
+      <div class="card agent"><div class="name">Partner Ops</div><div class="role">Day-to-day MGC ops for partner</div><div class="now">Standing by</div></div>
+      <div class="card agent"><div class="name">Mimismarket</div><div class="role">Granola markets, inventory, logistics</div><div class="now">Weekly bake/outreach plan live</div></div>
+      <div class="card agent"><div class="name">Ledger</div><div class="role">Money</div><div class="now">Continuity watched; paused items not today’s moves</div></div>
+      <div class="card agent"><div class="name">Social desk</div><div class="role">Drafts posts for review</div><div class="now">Standing by (content channels cut this week)</div></div>
+      <div class="card agent"><div class="name">House Manager</div><div class="role">Household needs list</div><div class="now">Standing by</div></div>
+      <div class="card agent"><div class="name">Health coach</div><div class="role">Daily health plan (lightweight)</div><div class="now">Standing by</div></div>
+      <div class="card agent"><div class="name">Homeopathic assistant</div><div class="role">Advisor grounded in practitioner guidance</div><div class="now">Standing by</div></div>
+      <div class="card agent"><div class="name">Agent designer (dr eggbot)</div><div class="role">Designs new agents</div><div class="now">Standing by</div></div>
+    </div>
+  </section>
+
+  <!-- 7. Parked / cut this week -->
+  <section aria-labelledby="parked-label">
+    <span class="label" id="parked-label">Parked / cut this week</span>
+    <details class="card parked">
+      <summary>Show what’s parked (Sept 21 board CUT list + Focus Map)</summary>
+      <ul>
+        <li>Micro1 job checks (soft-rejected Sept 10; no new mail — parked)</li>
+        <li>Flash ads / pulse / Kit rewrites</li>
+        <li>Deal Machines</li>
+        <li>Vault cleanup polish</li>
+        <li>SuperGrok refund chase</li>
+        <li>New content channels</li>
+        <li>Commercial kitchen offer for Mimi’s Market (paused)</li>
+        <li>One prior consulting lead (dropped Sept 24 — not active)</li>
+        <li>Money continuity items unless reopened</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- 8. Footer -->
+  <footer>
+    <span>Updated Sept 24, 2026 by Agent26 from vault and notes. Public-safe trim.</span>
+    <span>Illustrative example · personal details removed.</span>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var TZ = 'America/New_York';
+  var MEETING = { y: 2026, m: 9, d: 24, startH: 12, endH: 13 }; // 12:00–1:00 PM ET, Thu Sept 24, 2026
+
+  // ---- Time helpers (all in America/New_York) ----
+  var partsFmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: TZ, hour12: false,
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric'
+  });
+  function etParts(date) {
+    var out = {};
+    partsFmt.formatToParts(date).forEach(function (p) {
+      if (p.type !== 'literal') out[p.type] = parseInt(p.value, 10);
+    });
+    if (out.hour === 24) out.hour = 0;
+    return out;
+  }
+  // Epoch ms for a wall-clock time in ET. Two-pass offset correction handles DST.
+  function etWallToEpoch(y, m, d, h) {
+    var guess = Date.UTC(y, m - 1, d, h, 0, 0);
+    for (var i = 0; i < 2; i++) {
+      var p = etParts(new Date(guess));
+      var asUtc = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+      guess += Date.UTC(y, m - 1, d, h, 0, 0) - asUtc;
+    }
+    return guess;
+  }
+  var meetingStart = etWallToEpoch(MEETING.y, MEETING.m, MEETING.d, MEETING.startH);
+  var meetingEnd = etWallToEpoch(MEETING.y, MEETING.m, MEETING.d, MEETING.endH);
+
+  var clockFmt = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  var dateFmt = new Intl.DateTimeFormat('en-US', { timeZone: TZ, weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+  var clockEl = document.getElementById('clock');
+  var dateEl = document.getElementById('clock-date');
+  var cdEl = document.getElementById('countdown');
+  var lastCd = '';
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  function tick() {
+    var now = new Date();
+    clockEl.textContent = clockFmt.format(now);
+    dateEl.textContent = dateFmt.format(now) + ' · ET';
+
+    var msLeft = meetingStart - now.getTime();
+    var text, muted = false;
+    if (msLeft > 0) {
+      var s = Math.floor(msLeft / 1000);
+      var days = Math.floor(s / 86400);
+      var h = Math.floor((s % 86400) / 3600);
+      var mm = Math.floor((s % 3600) / 60);
+      var ss = s % 60;
+      text = 'Noon meeting in ' + (days > 0 ? days + 'd ' : '') + h + 'h ' + pad(mm) + 'm ' + pad(ss) + 's';
+    } else if (now.getTime() < meetingEnd) {
+      text = 'Meeting window · 12:00–1:00 PM ET';
+    } else {
+      text = 'Past noon — debrief next';
+      muted = true;
+    }
+    if (text !== lastCd) {
+      cdEl.textContent = text;
+      cdEl.classList.toggle('muted', muted);
+      lastCd = text;
+    }
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // ---- 3 moves: checkbox persistence ----
+  var moves = Array.prototype.slice.call(document.querySelectorAll('.move'));
+  var statusEl = document.getElementById('moves-status');
+
+  function storageGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function storageSet(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
+  function storageDel(key) { try { localStorage.removeItem(key); } catch (e) {} }
+
+  function render() {
+    var done = 0;
+    moves.forEach(function (li) {
+      var cb = li.querySelector('input[type="checkbox"]');
+      li.classList.toggle('done', cb.checked);
+      if (cb.checked) done++;
+    });
+    statusEl.textContent = done + ' of 3 done';
+  }
+
+  moves.forEach(function (li) {
+    var key = 'ceo-move-' + li.getAttribute('data-move');
+    var cb = li.querySelector('input[type="checkbox"]');
+    cb.checked = storageGet(key) === '1';
+    cb.addEventListener('change', function () {
+      if (cb.checked) storageSet(key, '1'); else storageDel(key);
+      render();
+    });
+  });
+
+  document.getElementById('moves-reset').addEventListener('click', function () {
+    moves.forEach(function (li) {
+      var key = 'ceo-move-' + li.getAttribute('data-move');
+      li.querySelector('input[type="checkbox"]').checked = false;
+      storageDel(key);
+    });
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
